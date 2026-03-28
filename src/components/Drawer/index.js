@@ -1,39 +1,43 @@
 import React from "react";
-import axios from "axios";
-
 import Info from "../info";
 import { useCart } from "../hooks/useCart"; 
+import { supabase } from "../../supabase";
 
 import styles from './Draver.module.scss'
 
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+function Drawer({onClose, onRemove, items = [], opened}){
 
-function Drawer({onClose,onRemove ,items = [] ,opened}){
-
-  const {cartItems , setCartItems, totalPrice,} = useCart()
+  const {cartItems, setCartItems, totalPrice} = useCart()
   const [orderId, setOrderId] = React.useState(null)
   const [isOrderComplete, setIsOrderComplete] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(false)
   
-
   const onClickOrder = async () =>{ 
     try {
-      setIsLoading(true)
-      const {data} = await axios.post('https://687500d2dd06792b9c9643cc.mockapi.io/orders', {items: cartItems, })
-      setOrderId(data.id)
-      setIsOrderComplete(true)
-      setCartItems([])
+      setIsLoading(true);
 
-      for (let i = 0; i < cartItems.length; i++) {
-        const item = cartItems[i];
-        await axios.delete(`https://686cd86b14219674dcc95632.mockapi.io/cart/${item.id}`)
-        await delay(1000)
+      const { data, error } = await supabase
+        .from('orders')
+        .insert([{ items: cartItems }])
+        .select();
+
+      if (error) {
+        console.error("Ошибка Supabase:", error);
+        throw new Error('Не удалось сохранить заказ');
       }
+
+      setOrderId(data[0].id);
+      setIsOrderComplete(true);
+      setCartItems([]);
+
+      const cartIds = cartItems.map(item => item.id);
+      await supabase.from('cart').delete().in('id', cartIds);
+
+    } catch (error) {
+      alert(`Ошибка при создании заказа :(`);
+      console.error(error);
     }
-    catch (error) {
-      console.log(`Ошибка при создании заказа :(`)
-    }
-    setIsLoading(false)
+    setIsLoading(false);
   }
 
   return (
@@ -84,18 +88,18 @@ function Drawer({onClose,onRemove ,items = [] ,opened}){
                 <li>
                   <span>Налог 5%:</span>
                   <div></div>
-                  <b>{totalPrice / 100 * 5} руб. </b>
+                  <b>{Math.round(totalPrice / 100 * 5)} руб. </b>
                 </li>
               </ul>
-              <button disabled = {isLoading} onClick={onClickOrder} className="greenButton">
-                Оформить заказ <img src="\img-foto\strelca-go-zacaz.svg" alt="Arrow" />
+              <button disabled={isLoading} onClick={onClickOrder} className="greenButton">
+                Оформить заказ <img src="/img-foto/strelca-go-zacaz.svg" alt="Arrow" />
               </button>
             </div>
           </div>
         ) : (
           <Info 
             title={isOrderComplete ? "Заказ оформлен!" :"Корзина пустая" }
-            description={isOrderComplete ? `Ваш заказ #${orderId} скоро будет передан курьерской доставке` : "Добавьте хотя бы одну пару кроссвок, чтобы сделать заказ." }
+            description={isOrderComplete ? `Ваш заказ #${orderId} скоро будет передан курьерской доставке` : "Добавьте хотя бы одну пару кроссовок, чтобы сделать заказ." }
             image={isOrderComplete ? "/img-foto/oform-zaccaz.jpg" :"/img-foto/carobca-pusta.svg"}
           />
         )}

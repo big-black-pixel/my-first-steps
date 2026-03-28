@@ -1,42 +1,49 @@
 import React from "react";
 import Card from "../components/Card";
-import axios from "axios";
+import { supabase } from "../supabase"; 
 
-function Orders(){
-
-  const [orders, setOrders] = React.useState([])
-  const [isLoading, setIsLoading] = React.useState(true)
+function Orders() {
+  const [orders, setOrders] = React.useState([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
-
-    (async() => {
+    (async () => {
       try {
-        const {data} = await axios.get('https://687500d2dd06792b9c9643cc.mockapi.io/orders')
-      setOrders(data.reduce((prev, obj) => [...prev, ...obj.items],[]))
-      setIsLoading(false)
+        const { data, error } = await supabase.from('orders').select('*');
+
+        if (error) {
+          console.error("Ошибка при загрузке заказов:", error);
+          alert('Ошибка при загрузке заказов');
+          return;
+        }
+
+        setOrders(data.reduce((prev, obj) => [...prev, ...(obj.items || [])], []));
+        setIsLoading(false);
+
       } catch (error) {
-        alert('Ошибка сервера ?')
-        console.error(error)
+        alert('Ошибка сервера');
+        console.error(error);
       }
-    })()
+    })();
+  }, []);
 
-  }, [])
-
-  return(
+  return (
       <div className="content p-40">
         <div className="d-flex align-center justify-between mb-40">
           <h1>Мои заказы</h1>
         </div>
         
         <div className="sneakers d-flex flex-wrap">
-          {(isLoading ? [...Array(10)] : orders).map((item) => (
+          {(isLoading ? [...Array(10)] : orders).map((item, index) => (
               <Card
-                loading = { isLoading}
+                key={index}
+                loading={isLoading}
                 {...item}
               />
             ))}
         </div>
       </div>
-  )
+  );
 }
+
 export default Orders;
