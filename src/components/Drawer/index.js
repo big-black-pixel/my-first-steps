@@ -2,6 +2,7 @@ import React from "react";
 import Info from "../info";
 import { useCart } from "../hooks/useCart"; 
 import { supabase } from "../../supabase";
+import { useSelector } from 'react-redux';
 
 import styles from './Draver.module.scss'
 
@@ -12,13 +13,15 @@ function Drawer({onClose, onRemove, items = [], opened}){
   const [isOrderComplete, setIsOrderComplete] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(false)
   
+  const { currentUser } = useSelector((state) => state.user); 
+
   const onClickOrder = async () =>{ 
     try {
       setIsLoading(true);
 
       const { data, error } = await supabase
         .from('orders')
-        .insert([{ items: cartItems }])
+        .insert([{ items: cartItems, user_id: currentUser.id }]) 
         .select();
 
       if (error) {
@@ -45,12 +48,7 @@ function Drawer({onClose, onRemove, items = [], opened}){
       <div className={styles.drawer}>
         <h2 className="d-flex justify-between mb-30">
           Корзина{''}
-          <img
-            onClick={onClose}
-            className="cu-p "
-            src="/img-foto/x-otmena-activ.svg"
-            alt="Close"
-          />
+          <img onClick={onClose} className="cu-p " src="/img-foto/x-otmena-activ.svg" alt="Close" />
         </h2>
   
         {items.length > 0 ? (
@@ -58,22 +56,13 @@ function Drawer({onClose, onRemove, items = [], opened}){
             <div className="items flex">
               {items.map((obj) => (
                 <div key={obj.id} className="cartItem d-flex align-center mb-20 ">
-                  <div
-                    style={{ backgroundImage: `url(${obj.imageUrl})` }}
-                    className="cartItemImg"
-                  ></div>
-  
+                  <div style={{ backgroundImage: `url(${obj.imageUrl})` }} className="cartItemImg"></div>
                   <div className="mr-20 d-flex">
                     <div>
                       <p className="mb-5">{obj.title}</p>
                       <b>{obj.price} руб.</b>
                     </div>
-                    <img
-                      onClick={() => onRemove(obj.id)}
-                      className="removeBtn "
-                      src="/img-foto/x-otmena-activ.svg"
-                      alt="Remove"
-                    />
+                    <img onClick={() => onRemove(obj.id)} className="removeBtn " src="/img-foto/x-otmena-activ.svg" alt="Remove"/>
                   </div>
                 </div>
               ))}

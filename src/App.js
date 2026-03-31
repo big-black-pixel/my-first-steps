@@ -3,11 +3,15 @@ import { Routes , Route } from 'react-router-dom';
 import Header from "./components/Header";
 import Drawer from "./components/Drawer";
 import AppContext from "./context";
-import { supabase } from "./supabase"; 
+import { supabase } from "./supabase";
 
 import Home from "./pages/Home";
 import Favorites from "./pages/Favorites";
 import Orders from "./pages/Orders";
+import Profile from "./pages/Profile"; 
+
+import { useDispatch, useSelector } from 'react-redux';
+import { setUser } from './redux/slices/userSlice';
 
 function App() {
   const [items, setItems] = React.useState([])
@@ -17,43 +21,68 @@ function App() {
   const [cartOpened, setCartOpened] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(true)
 
+  const dispatch = useDispatch();
+  const { currentUser, isAuth } = useSelector(state => state.user);
+
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        dispatch(setUser({ email: session.user.email, id: session.user.id }));
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        dispatch(setUser({ email: session.user.email, id: session.user.id }));
+      } else {
+        setCartItems([]);
+        setFavorites([]);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [dispatch]);
+
   React.useEffect(()=>{
      async function fetchData(){
         try {
-          // 1. Витрина из Supabase
+          setIsLoading(true);
           const { data: itemsData } = await supabase.from('items').select('*');
+          setItems(itemsData || []); 
 
-          // 2. Корзина из Supabase
-          const { data: cartData } = await supabase.from('cart').select('*, items(*)');
-          const formattedCart = cartData ? cartData.map(c => ({
-            ...c.items,       
-            id: c.id,         
-            parentId: c.item_id 
-          })) : [];
+          if (currentUser) {
+            const { data: cartData } = await supabase.from('cart').select('*, items(*)').eq('user_id', currentUser.id);
+            const formattedCart = cartData ? cartData.map(c => ({
+              ...c.items,       
+              id: c.id,         
+              parentId: c.item_id 
+            })) : [];
+            setCartItems(formattedCart);
 
-          // 3. Закладки из Supabase
-          const { data: favoritesData } = await supabase.from('favorites').select('*, items(*)');
-          const formattedFavorites = favoritesData ? favoritesData.map(f => ({
-            ...f.items,
-            id: f.id,
-            parentId: f.item_id
-          })) : [];
+            const { data: favoritesData } = await supabase.from('favorites').select('*, items(*)').eq('user_id', currentUser.id);
+            const formattedFavorites = favoritesData ? favoritesData.map(f => ({
+              ...f.items,
+              id: f.id,
+              parentId: f.item_id
+            })) : [];
+            setFavorites(formattedFavorites);
+          }
 
           setIsLoading(false);
-  
-          setItems(itemsData || []); 
-          setCartItems(formattedCart);
-          setFavorites(formattedFavorites);
-
         } catch (error) {
           alert("Ошибка при запросе данных");
           console.error(error);
         }
       }
       fetchData();
-    }, []);
+    }, [currentUser]);
 
     const onAddToCart = async (obj) => {
+      if (!isAuth) {
+        alert("Пожалуйста, войдите в аккаунт, чтобы добавлять товары в корзину!");
+        return;
+      }
+
       try {
         const findItem = cartItems.find((item) => Number(item.parentId) === Number(obj.id));
         
@@ -62,7 +91,7 @@ function App() {
           await supabase.from('cart').delete().eq('id', findItem.id);
         } else {
           setCartItems(prev => [...prev, { ...obj, parentId: obj.id }]);
-          const { data } = await supabase.from('cart').insert([{ item_id: obj.id }]).select();
+          const { data } = await supabase.from('cart').insert([{ item_id: obj.id, user_id: currentUser.id }]).select();
             
           if (data) {
             setCartItems(prev => prev.map(item => {
@@ -90,6 +119,11 @@ function App() {
     }
 
     const onAddToFavorites = async (obj) => {
+      if (!isAuth) {
+        alert("Пожалуйста, войдите в аккаунт, чтобы добавлять в закладки!");
+        return;
+      }
+
       try {
         const findItem = favorites.find((favObj) => Number(favObj.parentId) === Number(obj.id));
 
@@ -98,7 +132,7 @@ function App() {
           await supabase.from('favorites').delete().eq('id', findItem.id);
         } else {
           setFavorites((prev) => [...prev, { ...obj, parentId: obj.id }]);
-          const { data } = await supabase.from('favorites').insert([{ item_id: obj.id }]).select();
+          const { data } = await supabase.from('favorites').insert([{ item_id: obj.id, user_id: currentUser.id }]).select();
 
           if (data) {
             setFavorites((prev) => prev.map(item => {
@@ -178,6 +212,7 @@ function App() {
             />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/orders" element={<Orders />} />
+            <Route path="/profile" element={<Profile />} /> 
           </Routes>
 
         </div>

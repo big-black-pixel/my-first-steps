@@ -1,15 +1,13 @@
 import React from 'react';
-import {Link} from 'react-router-dom';
-                            
-import { useCart } from './hooks/useCart'; 
-
+import { Link } from 'react-router-dom';        
+import { useCart } from './hooks/useCart';
 
 function Header(props){
-  const {totalPrice,} = useCart()
+  const {totalPrice} = useCart()
 
     return(
         <header className="d-flex justify-between align-center p-40">
-          <Link to = "../home">
+          <Link to="../home">
             <div className="d-flex align-center">
               <img width={40} height={40} src="/img-foto/image 4.png" alt="Logotype" />
               <div>
@@ -25,12 +23,12 @@ function Header(props){
             </li>
             <li className="mr-20 cu-p">
               <Link to="../favorites">
-                <img width={18} height={18} src="/img-foto/sirdechco-zacladci.svg" alt= "Закладки"/>
+                <img width={18} height={18} src="/img-foto/sirdechco-zacladci.svg" alt="Закладки"/>
               </Link>
             </li>
             <li>
-              <Link to="../orders">
-                <img width={18} height={18} src="/img-foto/iconca-ch.svg" alt= "Пользоватеь"/>
+              <Link to="../profile">
+                <img width={18} height={18} src="/img-foto/iconca-ch.svg" alt="Пользователь"/>
               </Link>
             </li>
           </ul>

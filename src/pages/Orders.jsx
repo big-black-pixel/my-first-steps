@@ -1,48 +1,56 @@
 import React from "react";
 import Card from "../components/Card";
-import { supabase } from "../supabase"; 
+import { supabase } from "../supabase";
+import { useSelector } from 'react-redux';
 
 function Orders() {
   const [orders, setOrders] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  
+  const { currentUser } = useSelector((state) => state.user);
 
   React.useEffect(() => {
-    (async () => {
+    async function fetchOrders() {
       try {
-        const { data, error } = await supabase.from('orders').select('*');
-
-        if (error) {
-          console.error("Ошибка при загрузке заказов:", error);
-          alert('Ошибка при загрузке заказов');
-          return;
+        if (currentUser) {
+          const { data, error } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('user_id', currentUser.id);
+          
+          if (error) {
+            console.error("Ошибка Supabase:", error);
+            alert("Не удалось загрузить заказы с сервера.");
+          } else if (data) {
+            setOrders(data.map((obj) => obj.items).flat());
+          }
         }
-
-        setOrders(data.reduce((prev, obj) => [...prev, ...(obj.items || [])], []));
-        setIsLoading(false);
-
       } catch (error) {
-        alert('Ошибка сервера');
-        console.error(error);
+        console.error("Ошибка в коде:", error);
+      } finally {
+        setIsLoading(false);
       }
-    })();
-  }, []);
+    }
+
+    fetchOrders();
+  }, [currentUser]);
 
   return (
-      <div className="content p-40">
-        <div className="d-flex align-center justify-between mb-40">
-          <h1>Мои заказы</h1>
-        </div>
-        
-        <div className="sneakers d-flex flex-wrap">
-          {(isLoading ? [...Array(10)] : orders).map((item, index) => (
-              <Card
-                key={index}
-                loading={isLoading}
-                {...item}
-              />
-            ))}
-        </div>
+    <div className="content p-40">
+      <div className="d-flex align-center justify-between mb-40">
+        <h1>Мои заказы</h1>
       </div>
+
+      <div className="d-flex flex-wrap">
+        {(isLoading ? [...Array(8)] : orders).map((item, index) => (
+          <Card
+            key={index}
+            loading={isLoading}
+            {...item}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
