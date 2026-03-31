@@ -23,7 +23,7 @@ function Profile() {
         if (error) throw error;
         dispatch(setUser({ email: data.user.email, id: data.user.id }));
       } else {
-        const { data, error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
         alert('Ура! Регистрация успешна. Теперь вы можете войти.');
         setIsLoginMode(true);
