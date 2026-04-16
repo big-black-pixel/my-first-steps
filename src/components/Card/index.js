@@ -1,5 +1,5 @@
 import styles from './Card.module.scss';
-import React from 'react';
+import { useState, useEffect, useContext } from 'react';
 import AppContext from '../../context';
 import ContentLoader from "react-content-loader"
 
@@ -13,12 +13,12 @@ function Card({
   favorited = false,
   loading = false,
 }) {
-  const {isItemAdded} = React.useContext(AppContext)
+  const {isItemAdded} = useContext(AppContext)
   
-  const [isFavorite, setIsFavorite] = React.useState(favorited);
+  const [isFavorite, setIsFavorite] = useState(favorited);
   const obj = { id, parentId: id, imageUrl, title, price };
 
-  React.useEffect(() => {
+  useEffect(() => {
     setIsFavorite(favorited);
   }, [favorited]);
 

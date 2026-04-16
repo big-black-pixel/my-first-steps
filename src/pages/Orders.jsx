@@ -1,15 +1,15 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import Card from "../components/Card";
 import { supabase } from "../supabase";
 import { useSelector } from 'react-redux';
 
 function Orders() {
-  const [orders, setOrders] = React.useState([]);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [orders, setOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   const { currentUser } = useSelector((state) => state.user);
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function fetchOrders() {
       try {
         if (currentUser) {

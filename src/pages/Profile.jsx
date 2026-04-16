@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser, removeUser } from '../redux/slices/userSlice';
 import { supabase } from '../supabase';
@@ -8,10 +8,10 @@ function Profile() {
   const dispatch = useDispatch();
   const { isAuth, currentUser } = useSelector((state) => state.user);
   
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [isLoginMode, setIsLoginMode] = React.useState(true);
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleAuth = async (e) => {
     e.preventDefault();

@@ -1,17 +1,17 @@
-import React from "react";
-import Info from "../info";
+import { useState } from "react";
+import Info from "../Info";
 import { useCart } from "../hooks/useCart"; 
 import { supabase } from "../../supabase";
 import { useSelector } from 'react-redux';
 
-import styles from './Draver.module.scss'
+import styles from './Drawer.module.scss'
 
 function Drawer({onClose, onRemove, items = [], opened}){
 
   const {cartItems, setCartItems, totalPrice} = useCart()
-  const [orderId, setOrderId] = React.useState(null)
-  const [isOrderComplete, setIsOrderComplete] = React.useState(false)
-  const [isLoading, setIsLoading] = React.useState(false)
+  const [orderId, setOrderId] = useState(null)
+  const [isOrderComplete, setIsOrderComplete] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   
   const { currentUser } = useSelector((state) => state.user); 
 

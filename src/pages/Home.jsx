@@ -19,11 +19,11 @@ function Home({
     
     return (isLoading ? [...Array(10)] : filtredItems).map((item, index) => (
       <Card
-        key={index}
+        key={isLoading ? index : item.id}
         onFavorite={onAddToFavorites}
         onPlus={onAddToCart}
         loading={isLoading}
-        favorited={favorites.some((favObj) => Number(favObj.parentId) === Number(item.id))}
+        favorited={item ? favorites.some((favObj) => Number(favObj.parentId) === Number(item.id)) : false}
         {...item}
       />
     ));

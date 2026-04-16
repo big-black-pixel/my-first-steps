@@ -1,6 +1,6 @@
-import React from "react";
+import React , { useEffect , useState } from "react";
 import { Routes , Route } from 'react-router-dom';
-import Header from "./components/Header";
+import Header from "./components/Header/index"; 
 import Drawer from "./components/Drawer";
 import AppContext from "./context";
 import { supabase } from "./supabase";
@@ -14,17 +14,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setUser } from './redux/slices/userSlice';
 
 function App() {
-  const [items, setItems] = React.useState([])
-  const [cartItems, setCartItems] = React.useState([])
-  const [favorites, setFavorites] = React.useState([])
-  const [searchValue, setSearchValue] = React.useState('')
-  const [cartOpened, setCartOpened] = React.useState(false)
-  const [isLoading, setIsLoading] = React.useState(true)
+  const [items, setItems] = useState([])
+  const [cartItems, setCartItems] = useState([])
+  const [favorites, setFavorites] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [cartOpened, setCartOpened] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   const dispatch = useDispatch();
   const { currentUser, isAuth } = useSelector(state => state.user);
 
-  React.useEffect(() => {
+  useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         dispatch(setUser({ email: session.user.email, id: session.user.id }));
@@ -43,7 +43,7 @@ function App() {
     return () => subscription.unsubscribe();
   }, [dispatch]);
 
-  React.useEffect(()=>{
+  useEffect(()=>{
      async function fetchData(){
         try {
           setIsLoading(true);
